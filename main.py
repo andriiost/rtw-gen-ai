@@ -7,9 +7,7 @@ with open("test_files.json", "r") as file:
 
 client = OpenAI()
 
-# Loop through each entry in the JSON file
 for name, text in zip(data["name"], data["text"]):
-    # Construct the dynamic prompt
     prompt = f"""
     Extract the following information from the provided text:
     - Accommodation Name: The specific tool or method being used to accommodate workers.
@@ -35,7 +33,6 @@ for name, text in zip(data["name"], data["text"]):
     Text: {text}
     """
 
-    # Make the API request with the constructed prompt
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -49,7 +46,6 @@ for name, text in zip(data["name"], data["text"]):
         presence_penalty=0
     )
 
-    # Print the response from GPT-4
     print(f"Response for '{name}':")
     print(response.choices[0].message.content)
     print("\n" + "=" * 50 + "\n")
