@@ -47,7 +47,7 @@ export default function Login() {
         <div>
           <button
             type="submit"
-            className="flex mt-5 w-full justify-center rounded-3xl bg-sky-600 text-white px-3 py-3 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="flex mt-5 w-full justify-center rounded-3xl bg-sky-600 text-white px-3 py-3 text-sm font-semibold leading-6 shadow-sm"
           >
             Login
           </button>

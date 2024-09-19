@@ -3,6 +3,7 @@ import './index.css'
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import Login from './pages/loginPage/Login';
+import VerificationPage from './pages/verificationPage/VerificationPage';
 import { Route, Routes, BrowserRouter } from 'react-router-dom'
 import Home from './pages/homePage/Home';
 import { Accommodations } from './pages/accommodationsPage/Accommodations';
@@ -18,6 +19,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<Login />} />
             <Route path='/accommodations' element={<Accommodations/>}/>
+            <Route path='/verification/:id' element={<VerificationPage />} />
       </Routes>
         </div>
       </BrowserRouter>
