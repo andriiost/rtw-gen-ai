@@ -1,0 +1,50 @@
+{
+  "accommodations": [
+    {
+      "accommodation_name": "Drywall Panel Lifters",
+      "accommodation_description": "Drywall lifters eliminate the need for lifting and holding heavy sheets of drywall overhead and allow one person to complete this task.",
+      "injury_location_name": "Arm(s)",
+      "industry_name": "Construction",
+      "activity_name": "Lifting and holding heavy sheets of drywall overhead",
+      "verified": false,
+      "date_created": "2024-09-17"
+    },
+    {
+      "accommodation_name": "Manual Jacks",
+      "accommodation_description": "This manual jack can be used to raise materials and level them before securing in place, eliminating the need for a worker to lift and hold the materials. This is another tool that allows an IIP to work independently and in a safe manner.",
+      "injury_location_name": "Back, unspecified, NEC",
+      "industry_name": "Construction",
+      "activity_name": "Lifting and holding materials",
+      "verified": false,
+      "date_created": "2024-09-17"
+    },
+    {
+      "accommodation_name": "Door Lifter",
+      "accommodation_description": "A door lifter is a handy tool that will allow a worker to safely hang a door on their own and maintain good upright posture with less effort.",
+      "injury_location_name": "Back, unspecified, NEC",
+      "industry_name": "Construction",
+      "activity_name": "Hanging doors",
+      "verified": false,
+      "date_created": "2024-09-17"
+    },
+    {
+      "accommodation_name": "Quick Cut Concrete Saw Carts",
+      "accommodation_description": "Why carry a heavy and cumbersome quick cut concrete saw when it can be mounted on a cart and you can push while operating? Not only does this cart eliminate the lifting, it improves postures while operating the saw.",
+      "injury_location_name": "Multiple lower extremities locations",
+      "industry_name": "Construction",
+      "activity_name": "Operating a quick cut concrete saw",
+      "verified": false,
+      "date_created": "2024-09-17"
+    },
+    {
+      "accommodation_name": "Panel Carrier Tool",
+      "accommodation_description": "This panel carrier tool fits around the item to be lifted and provides a handle that allows IIP to maintain good wrist posture and a comfortable power grip. No need to walk backwards while carrying large awkward products such as panels.",
+      "injury_location_name": "Wrist(s)",
+      "industry_name": "Construction",
+      "activity_name": "Carrying large awkward products",
+      "verified": false,
+      "date_created": "2024-09-17"
+    }
+  ],
+  "document_description": "This document is the second issue of the Accommodations News newsletter dated April 21, 2023. It focuses on various tools used in the construction industry to make tasks easier and safer, such as drywall panel lifters, manual jacks, door lifters, quick cut concrete saw carts, and panel carrier tools. Each tool's cost range, usage, and benefits are discussed. The document aims to inform about safe work practices and equipment that can prevent injuries."
+}

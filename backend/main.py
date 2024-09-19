@@ -1,5 +1,10 @@
 import json
 from openai import OpenAI
+from typing import Union
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
 
 # Load the JSON data from the file
 with open("test_files.json", "r") as file:
@@ -49,3 +54,15 @@ for name, text in zip(data["name"], data["text"]):
     print(f"Response for '{name}':")
     print(response.choices[0].message.content)
     print("\n" + "=" * 50 + "\n")
+
+@app.get("/")
+async def main():
+  return {"message": "LORD HAVE MERCY ON MA SOUL"}
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
