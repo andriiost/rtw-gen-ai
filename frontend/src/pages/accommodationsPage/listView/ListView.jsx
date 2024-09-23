@@ -56,17 +56,17 @@ export const ListView = ({ listData }) => {
       <div className='grid grid-cols-6 p-4 bg-blue-950'>
         {headers.map((header, i) => {
           return (
-            <>
+            <div key={i}>
               {i != 5 ?
-                <div key={i} className='flex justify-between p-1' onClick={() => sortColumn(header)}>
+                <div className='flex justify-between p-1' onClick={() => sortColumn(header)}>
                   <h3 className='text-white text-sm font-semibold'>{header}</h3>
                   <img src={changeIcon(sort[header])} className='mr-4' />
                 </div> :
-                <div key={i} className='flex justify-between p-1'>
+                <div className='flex justify-between p-1'>
                   <h3 className='text-white text-sm font-semibold'>{header}</h3>
                 </div>}
 
-            </>
+            </div>
           )
         })}
       </div>
