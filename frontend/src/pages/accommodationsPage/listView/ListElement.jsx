@@ -6,7 +6,7 @@ export default function
       return (text.length > 19) ? text.slice(0, 19) + "..." : text
     }
   return (
-    <div className={`grid grid-cols-6 p-4 gap-8 hover:bg-sky-100 transition ease-in hover:ease-out ${id % 2 == 1 && 'bg-slate-50'}`}>
+    <div className={`grid grid-cols-6 p-4 gap-8 hover:bg-sky-100 transition ease-in hover:ease-out text-sm ${id % 2 == 1 && 'bg-slate-50'}`}>
       <p> {truncateText(accommodation)}</p>
       <p> {truncateText(partOfBody)}</p>
       <p> {truncateText(naicsIndustry)}</p>
@@ -29,6 +29,6 @@ export default function
         </div>
       }
 
-    </div>
+    </div> 
   )
 }
