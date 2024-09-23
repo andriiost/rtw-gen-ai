@@ -59,11 +59,11 @@ export const ListView = ({ listData }) => {
             <>
               {i != 5 ?
                 <div key={i} className='flex justify-between p-1' onClick={() => sortColumn(header)}>
-                  <h3 className='text-white text-sm'>{header}</h3>
+                  <h3 className='text-white text-sm font-semibold'>{header}</h3>
                   <img src={changeIcon(sort[header])} className='mr-4' />
                 </div> :
                 <div key={i} className='flex justify-between p-1'>
-                  <h3 className='text-white text-sm'>{header}</h3>
+                  <h3 className='text-white text-sm font-semibold'>{header}</h3>
                 </div>}
 
             </>
