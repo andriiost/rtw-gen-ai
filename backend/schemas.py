@@ -1,30 +1,36 @@
-from app import ma
+from app import db, ma
+from models import Accommodation, Industry, InjuryNature, InjuryLocation
 
-class DocumentSchema(ma.Schema):
+class DocumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('document_id', 'document_name', 'url')
+        fields=['document_id', 'document_name', 'document_description', 'url']
 
-class IndustrySchema(ma.Schema):
+class IndustrySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('industry_id', 'industry_name')
+        model = Industry
+        load_instance = True
+        sqla_session = db.session
 
-class InjuryNatureSchema(ma.Schema):
+class InjuryNatureSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('injury_nature_id', 'injury_nature_name')
+        model = InjuryNature
+        load_instance = True
+        sqla_session = db.session
 
-class InjuryLocationSchema(ma.Schema):
+class InjuryLocationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields = ('injury_location_id', 'injury_location_name')
+        model = InjuryLocation
+        load_instance = True
+        sqla_session = db.session
 
-class AccommodationSchema(ma.Schema):
+class AccommodationSchema(ma.SQLAlchemyAutoSchema):
     document = ma.Nested(DocumentSchema)
     industries = ma.List(ma.Nested(IndustrySchema))
     injury_natures = ma.List(ma.Nested(InjuryNatureSchema))
     injury_locations = ma.List(ma.Nested(InjuryLocationSchema))
 
     class Meta:
-        # The fields are ordered explicitly here
-        fields = ('accommodation_id', 'accommodation_name', 'accommodation_description', 
-                  'verified', 'date_created', 'document', 'industries', 
-                  'injury_natures', 'injury_locations')
-        ordered = True  # Ensures the order is respected
+        # Automatically maps fields
+        model = Accommodation
+        load_instance = True
+        sqla_session = db.session
