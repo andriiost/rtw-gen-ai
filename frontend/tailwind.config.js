@@ -11,6 +11,8 @@ module.exports = {
       colors: {
         'footer': '#013359',
         'footerGrey': '#333333',
+        'plum': '#8C348A',
+        'midnight' : '#003359'
       }
     },
   },
