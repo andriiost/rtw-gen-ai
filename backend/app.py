@@ -15,6 +15,14 @@ def create_app():
     # Set config
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://azureuser:Accommodations2024@rtw-accommodations.database.windows.net:1433/rtw-accommodations?driver=ODBC+Driver+18+for+SQL+Server'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ECHO'] = True
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,            # Number of persistent connections in the pool
+    'max_overflow': 20,         # Max connections allowed to overflow
+    'pool_recycle': 1800,       # Recycle connections every 30 minutes
+    'pool_timeout': 30          # Timeout before giving up on acquiring a connection
+}
+
 
     # Initialize extensions with app
     db.init_app(app)
