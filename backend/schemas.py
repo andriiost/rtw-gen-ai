@@ -1,5 +1,5 @@
-from app import db, ma
-from models import Accommodation, Industry, InjuryNature, InjuryLocation
+from . import db, ma
+from .models import Accommodation, Industry, InjuryNature, InjuryLocation
 
 class DocumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
