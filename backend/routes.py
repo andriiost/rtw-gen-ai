@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from .models import Accommodation
+from .models import Accommodation, Industry, InjuryLocation
 from .schemas import AccommodationSchema
 from sqlalchemy.orm import selectinload
 from sqlalchemy import asc, desc
@@ -26,18 +26,30 @@ def get_accommodation(id):
     result = schema.dump(accommodation)
     
     return jsonify(result)
-
-# Multiple Accommodations Route with Sorting
+# Multiple Accommodations Route with Sorting and Filtering using GET query parameters
 @accommodation_routes.route('/accommodations', methods=['GET'])
 def get_accommodations():
-    # Get pagination parameters
+    # Get pagination and sorting from query parameters
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 20, type=int)
+    sort_by = request.args.get('sort_by', 'accommodation_id')  # Default sort by id
+    sort_order = request.args.get('sort_order', 'asc')  # Default is ascending order
     offset = (page - 1) * limit
 
-    # Sorting options: sort by 'id' or 'name'
-    sort_by = request.args.get('sort_by', 'accommodation_id')  # Default is to sort by 'id'
-    sort_order = request.args.get('sort_order', 'asc')  # Default is ascending order
+    # Extract list-based filters from query parameters
+    industry_ids = request.args.get('industry_ids', '')
+    injury_location_ids = request.args.get('injury_location_ids', '')
+    verified = request.args.get('verified', None)
+
+    # Convert comma-separated strings to lists of integers
+    if industry_ids:
+        industry_ids = [int(i) for i in industry_ids.split(',')]
+    if injury_location_ids:
+        injury_location_ids = [int(i) for i in injury_location_ids.split(',')]
+
+    # Convert 'verified' parameter to boolean if provided
+    if verified is not None:
+        verified = verified.lower() in ['true', '1']
 
     # Map sort_by fields to model attributes
     sort_by_column_map = {
@@ -46,24 +58,30 @@ def get_accommodations():
     }
 
     # Ensure we have a valid sorting column
-    if sort_by not in sort_by_column_map:
-        sort_by = 'accommodation_id'
+    sort_column = sort_by_column_map.get(sort_by, Accommodation.accommodation_id)
 
-    # Determine the sorting order (ascending or descending)
-    if sort_order == 'asc':
-        sort_criteria = asc(sort_by_column_map[sort_by])
-    else:
-        sort_criteria = desc(sort_by_column_map[sort_by])
+    # Apply sorting based on sort_order
+    sort_criteria = asc(sort_column) if sort_order == 'asc' else desc(sort_column)
 
-    # Fetch accommodations with sorting and pagination
-    accommodations = db.session.query(Accommodation)\
+    # Base query for accommodations
+    query = db.session.query(Accommodation)\
         .options(
             selectinload(Accommodation.document),
             selectinload(Accommodation.industries),
             selectinload(Accommodation.injury_natures),
             selectinload(Accommodation.injury_locations)
-        )\
-        .order_by(sort_criteria)\
+        )
+
+    # Apply filters if provided in the query parameters
+    if industry_ids:
+        query = query.join(Accommodation.industries).filter(Industry.industry_id.in_(industry_ids))
+    if injury_location_ids:
+        query = query.join(Accommodation.injury_locations).filter(InjuryLocation.injury_location_id.in_(injury_location_ids))
+    if verified is not None:
+        query = query.filter(Accommodation.verified == verified)
+
+    # Apply sorting and pagination
+    accommodations = query.order_by(sort_criteria)\
         .offset(offset)\
         .limit(limit)\
         .all()
@@ -72,11 +90,14 @@ def get_accommodations():
     schema = AccommodationSchema(many=True)
     result = schema.dump(accommodations)
 
-    # Return the results with pagination and sorting metadata
+    # Return the results with pagination, sorting, and filtering metadata
     return jsonify({
         'accommodations': result,
         'page': page,
         'limit': limit,
         'sort_by': sort_by,
-        'sort_order': sort_order
+        'sort_order': sort_order,
+        'industry_ids': industry_ids,
+        'injury_location_ids': injury_location_ids,
+        'verified': verified
     })
