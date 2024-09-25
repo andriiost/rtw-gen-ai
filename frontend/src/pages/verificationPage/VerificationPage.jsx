@@ -200,7 +200,7 @@ export default function VerificationPage
             <div className="bg-white px-4 py-3">
             {/* code here */}
             <div className=''>
-            <button className='flex flex-row px-3 py-1 ms-16 rounded-3xl my-8 border-cyan-950 border'>
+            <button className='flex flex-row px-3 py-1 ms-10 rounded-3xl my-8 border-cyan-950 border'>
               <div className='my-auto'>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="angle-left-solid">
@@ -210,9 +210,9 @@ export default function VerificationPage
 </div>        
               Back
             </button>
-            <div className="flex flex-row justify-center pb-10">
+            <div className="flex flex-row mx-10 justify-center pb-10">
             
-            <div className="w-3/5 pe-16  flex flex-col">
+            <div className="w-4/5 pe-16  flex flex-col">
             <p className='text-4xl mb-1'>
             Knee Brace 
             </p>
@@ -234,7 +234,7 @@ export default function VerificationPage
             </div>
             
 
-            <div className='w-2-5'>
+            <div className='w-1/3'>
             <div className='border p-6 rounded-lg border-neutral-400'>
               <p className='text-2xl font-bold'>
               More Information 
@@ -255,7 +255,7 @@ export default function VerificationPage
               <p className='rounded-3xl border-midnight hover:bg-midnight/25 border py-3 px-1 mt-2 mb-6 text-midnight'> {industry} </p>
               </div>
             </div>
-            <button className='w-full flex flex-row text-white px-10 py-3 rounded-3xl mt-6 bg-sky-600'>
+            <button className='w-full flex justify-center flex-row text-white px-10 py-3 rounded-3xl mt-6 bg-sky-600'>
               View original PDF
               <div className='my-auto mx-2'>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
