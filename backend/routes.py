@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request
-from .models import Accommodation, Industry, InjuryLocation
+from .models import Accommodation, Industry, InjuryLocation, InjuryNature, Document
 from .schemas import AccommodationSchema
 from sqlalchemy.orm import selectinload
 from sqlalchemy import asc, desc
 from . import db
+from datetime import datetime
 
 # Create a blueprint
 accommodation_routes = Blueprint('accommodation_routes', __name__)
@@ -26,6 +27,7 @@ def get_accommodation(id):
     result = schema.dump(accommodation)
     
     return jsonify(result)
+
 # Multiple Accommodations Route with Sorting and Filtering using GET query parameters
 @accommodation_routes.route('/accommodations', methods=['GET'])
 def get_accommodations():
@@ -101,3 +103,108 @@ def get_accommodations():
         'injury_location_ids': injury_location_ids,
         'verified': verified
     })
+
+
+# Update Accommodation
+@accommodation_routes.route('/accommodation/<int:accommodation_id>', methods=['PUT'])
+def update_accommodation(accommodation_id):
+    try:
+        # Step 1: fetch the existing accommodation by ID
+        accommodation = db.session.query(Accommodation)\
+            .options(
+                selectinload(Accommodation.document),
+                selectinload(Accommodation.industries),
+                selectinload(Accommodation.injury_locations),
+                selectinload(Accommodation.injury_natures)
+            ).filter_by(accommodation_id = accommodation_id).first()
+        
+        if not accommodation:
+            return jsonify({"message": "Accommodation not found"}), 404
+        
+        # Step 2: Get the request body data
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"message": "invalid request body"}), 400
+        
+        # Step 3: Update the accommodation fields
+        accommodation.accommodation_name = data.get('accommodation_name', accommodation.accommodation_name)
+        accommodation.accommodation_description = data.get('accommodation_description', accommodation.accommodation_description)
+        accommodation.verified = data.get('verified', accommodation.verified)
+
+        # Handle date_created if passed
+        date_created = data.get('date_created')
+        if date_created:
+            try:
+                accommodation.date_created = datetime.strptime(date_created, "%Y-%m-%d")
+            except ValueError:
+                return jsonify({"message": "Invalid date format. Use YYYY-MM-DD"}), 400
+            
+        # Handle the document url if passed
+        if 'url' in data:
+            if accommodation.document:
+                accommodation.document.url = data['url']
+            else:
+                # Create a new document entry if it does not exist
+                new_document = Document(url=data['url'])
+                db.session.add(new_document)
+                db.session.commit()
+                accommodation.document = new_document
+
+        # Step 4: Update Many-to-Many relationships
+
+        # Industries
+        if 'industries' in data:
+            accommodation.industries.clear()  # Clear existing relationships
+            for industry_name in data['industries']:
+                industry = db.session.query(Industry).filter_by(industry_name=industry_name).first()
+                if industry:
+                    accommodation.industries.append(industry)
+                else:
+                    return jsonify({"message": f"Industry '{industry_name}' not found"}), 400
+                
+        # Injury Locations
+        if 'injury_locations' in data:
+            accommodation.injury_locations.clear()  # Clear existing relationships
+            for location_name in data['injury_locations']:
+                injury_location = db.session.query(InjuryLocation).filter_by(injury_location_name=location_name).first()
+                if injury_location:
+                    accommodation.injury_locations.append(injury_location)
+                else:
+                    return jsonify({"message": f"Injury Location '{location_name}' not found"}), 400
+
+        # Injury Natures
+        if 'injury_natures' in data:
+            accommodation.injury_natures.clear()  # Clear existing relationships
+            for nature_name in data['injury_natures']:
+                injury_nature = db.session.query(InjuryNature).filter_by(injury_nature_name=nature_name).first()
+                if injury_nature:
+                    accommodation.injury_natures.append(injury_nature)
+                else:
+                    return jsonify({"message": f"Injury Nature '{nature_name}' not found"}), 400
+
+        # Step 5: Save changes to database
+        db.session.commit()
+
+        # Step 6: Prepare the updated response
+        updated_accommodation = {
+            "accommodation_id": accommodation.accommodation_id,
+            "accommodation_name": accommodation.accommodation_name,
+            "accommodation_description": accommodation.accommodation_description,
+            "industries": [industry.industry_name for industry in accommodation.industries],
+            "injury_locations": [location.injury_location_name for location in accommodation.injury_locations],
+            "injury_natures": [nature.injury_nature_name for nature in accommodation.injury_natures],
+            "verified": accommodation.verified,
+            "date_created": accommodation.date_created.strftime("%Y-%m-%d") if accommodation.date_created else None,
+            "url": accommodation.document.url if accommodation.document else None
+        }
+
+        # Step 7: Return the response
+        return jsonify({
+            "message": "Accommodation updated successfully",
+            "accommodation": updated_accommodation
+        }), 200
+    
+    except Exception as e:
+        # Handle unexpected errors
+        return jsonify({"message": "An error occured", "error": str(e)}), 500
