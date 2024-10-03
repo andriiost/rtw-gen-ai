@@ -41,7 +41,23 @@ cd backend
 pip install -r requirements.txt
 ```
 
+------------
+<strong>FOR MAC USERS ONLY</strong>
+
 Download the <a href="https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16&redirectedfrom=MSDN">ODBC</a> driver for macOS users.
+
+Install Homebrew if you haven't:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Install the unixODBC package:
+
+```bash
+brew install unixodbc
+```
+
 
 ### Environment Setup
 You will need a ```.env``` file in the ```/backend``` folder of your project containing the following variables:
