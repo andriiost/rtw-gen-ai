@@ -9,10 +9,10 @@ const Card = ({ name, desc, injury, industry, activity, verified, date_created, 
       <h2 className='text-2xl text-sky-600 font-bold'>{name}</h2>
       <p className='text-slate-500 text-sm mb-4'>{activity}</p>
       <div className="flex mb-4 flex-row">
-        <div className="px-3 py-1 me-1 border-2 border-emerald-800/75 text-emerald-800/75 rounded-3xl">
+        <div className="px-3 py-1 me-1 border-2 hover:bg-emerald-500/25 border-emerald-800/75 text-emerald-800/75 rounded-3xl">
           {injury}
         </div>
-        <div className="px-3 py-1 mx-1 border-2 border-gray-500 text-gray-500 rounded-3xl">
+        <div className="px-3 py-1 mx-1 border-2 hover:bg-gray-300/25 border-gray-500 text-gray-500 rounded-3xl">
           {industry}
         </div>
       </div>
