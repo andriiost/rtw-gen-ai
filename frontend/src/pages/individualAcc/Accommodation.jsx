@@ -1,18 +1,44 @@
-import React from 'react'
 import {useParams} from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 export default function Accommodation() {
     const {id} = useParams()
     const [title, setTitle] = useState('')
-    const [activity, setActivity] = useState('')
     const [area, setArea] = useState('')
     const [nature, setNature] = useState('')
     const [industry, setIndustry] = useState('')
     const [accommodation, setAccommodation] = useState('This manual jack can be used to raise materials and level them before securing in place, eliminating the need for a worker to lift and hold the materials. This is another tool that allows an IIP to work independently and in a safe manner.')
     const [verified, setVerified] = useState('')
     const [link, setLink] = useState('')
-    const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10))
+    const [date, setDate] = useState('')
+
+    useEffect(() => {
+        const fetchAccommodation = async () => {
+            try{
+            const res = await fetch(`http://127.0.0.1:5000/accommodations/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            const data = await res.json()
+            console.log(data)
+            setTitle(data.accommodation_name)
+            //should be an array do one for now
+            setArea(data.injury_locations[0].injury_location_name)
+            setNature(data.injury_natures[0].injury_nature_name)
+            setIndustry(data.industries[0].industry_name)
+            setAccommodation(data.accommodation_description)
+            setVerified(data.verified)
+            setLink(data.document.url)
+            setDate(data.date_created)
+            } catch (err) {
+                console.log(err)
+                console.log('error')
+            }
+        }
+        fetchAccommodation()
+    })
 
     // will need to actually fetch correct data
 
@@ -37,11 +63,11 @@ return (
             
                     <div className="w-4/5 pe-32  flex flex-col">
                     <p className='text-4xl mb-1'>
-                    Knee Brace 
+                    {title}
                     </p>
 
                         <div className="flex text-lg flex-row">
-                            Verified on {currentDate}
+                            Created/verified on {date}
                             <p className='ps-4 flex flex-row text-sky-600'> 
                                 <div className='mx-1 my-auto'>
                                 <svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
