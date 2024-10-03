@@ -44,7 +44,7 @@ pip install -r requirements.txt
 Download the <a href="https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16&redirectedfrom=MSDN">ODBC</a> driver for macOS users.
 
 ### Environment Setup
-You will need a ```.env``` file in the root of your project containing the following variables:
+You will need a ```.env``` file in the ```/backend``` folder of your project containing the following variables:
 
 ```
 AZURE_OPENAI_API_KEY=
