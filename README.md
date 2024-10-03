@@ -44,18 +44,19 @@ pip install -r requirements.txt
 ------------
 <strong>FOR MAC USERS ONLY</strong>
 
-Download the <a href="https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16&redirectedfrom=MSDN">ODBC</a> driver for macOS users.
-
-Install Homebrew if you haven't:
-
+Install the unixODBC package:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install unixodbc
 ```
+Download the <a href="https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver16">ODBC</a> driver for macOS users.
 
-Install the unixODBC package:
+If you are too lazy to read the article just run this:
 
 ```bash
-brew install unixodbc
+brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+brew update
+HOMEBREW_ACCEPT_EULA=Y brew install msodbcsql18 mssql-tools18
 ```
 
 
