@@ -61,3 +61,5 @@ PRODUCTION_DATABASE_URL=
 After installing all necessary libraries & database drivers and setting your ```.env``` file, run flask in the /backend directory:
 
 ```flask run```
+
+This will start a new local server with accessible endpoints.
