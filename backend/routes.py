@@ -124,7 +124,7 @@ def get_accommodations():
         return handle_error(f"An error occurred: {str(e)}", 500)
 
 # Update Accommodation
-@accommodation_routes.route('/accommodation/<int:accommodation_id>', methods=['PUT'])
+@accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['PUT'])
 def update_accommodation(accommodation_id):
     try:
         # Step 1: fetch the existing accommodation by ID
@@ -205,20 +205,11 @@ def update_accommodation(accommodation_id):
         db.session.commit()
 
         # Step 6: Prepare the updated response
-        updated_accommodation = {
-            "accommodation_id": accommodation.accommodation_id,
-            "accommodation_name": accommodation.accommodation_name,
-            "accommodation_description": accommodation.accommodation_description,
-            "industries": [industry.industry_name for industry in accommodation.industries],
-            "injury_locations": [location.injury_location_name for location in accommodation.injury_locations],
-            "injury_natures": [nature.injury_nature_name for nature in accommodation.injury_natures],
-            "verified": accommodation.verified,
-            "date_created": accommodation.date_created.strftime("%Y-%m-%d") if accommodation.date_created else None,
-            "url": accommodation.document.url if accommodation.document else None
-        }
+        schema = AccommodationSchema()
+        result = schema.dump(accommodation)
 
         # Step 7: Return the response
-        return handle_success("Accommodation updated successfully", updated_accommodation)
+        return handle_success("Accommodation updated successfully", result)
 
     except Exception as e:
         # Handle unexpected errors
