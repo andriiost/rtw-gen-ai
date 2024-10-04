@@ -208,3 +208,28 @@ def update_accommodation(accommodation_id):
     except Exception as e:
         # Handle unexpected errors
         return jsonify({"message": "An error occured", "error": str(e)}), 500
+
+
+# Delete Accommodation
+@accommodation_routes.route('/delete_accommodation/<int:accommodation_id>', methods=['DELETE'])
+def delete_accommodation(accommodation_id):
+    try:
+        # Step 1: Fetch the accommodation by ID
+        accommodation = db.session.query(Accommodation).filter_by(accommodation_id=accommodation_id).first()
+
+        if not accommodation:
+            return jsonify({"message": "Accommodation not found"}), 404
+
+        # Step 2: Delete the accommodation
+        db.session.delete(accommodation)
+        db.session.commit()
+
+        # Step 3: Return success response
+        return jsonify({
+            "message": "Accommodation deleted successfully",
+            "accommodation_id": accommodation_id
+        }), 200
+
+    except Exception as e:
+        # Step 4: Handle unexpected errors
+        return jsonify({"message": "An error occurred during the deletion process", "error": str(e)}), 500
