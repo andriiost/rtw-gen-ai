@@ -216,7 +216,7 @@ def update_accommodation(accommodation_id):
         return handle_error(f"An error occurred: {str(e)}", 500)
 
 # Delete Accommodation
-@accommodation_routes.route('/accommodation/<int:accommodation_id>', methods=['DELETE'])
+@accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['DELETE'])
 def delete_accommodation(accommodation_id):
     try:
         # Step 1: Fetch the accommodation by ID
