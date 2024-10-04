@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import asc, desc
 from . import db
 from datetime import datetime
+from marshmallow import ValidationError
 
 # Create a blueprint
 accommodation_routes = Blueprint('accommodation_routes', __name__)
@@ -127,7 +128,7 @@ def get_accommodations():
 @accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['PUT'])
 def update_accommodation(accommodation_id):
     try:
-        # Step 1: fetch the existing accommodation by ID
+        # Step 1: Fetch the existing accommodation by ID
         accommodation = db.session.query(Accommodation)\
             .options(
                 selectinload(Accommodation.document),
@@ -145,75 +146,72 @@ def update_accommodation(accommodation_id):
         if not data:
             return handle_error("Invalid request body", 400)
 
-        # Step 3: Update the accommodation fields
-        accommodation.accommodation_name = data.get('accommodation_name', accommodation.accommodation_name)
-        accommodation.accommodation_description = data.get('accommodation_description', accommodation.accommodation_description)
-        accommodation.verified = data.get('verified', accommodation.verified)
+        # Step 3: Validate and deserialize the data using the schema
+        schema = AccommodationSchema()
+        validated_data = schema.load(data)  # Marshmallow validates and deserializes the data
 
-        # Handle date_created if passed
-        date_created = data.get('date_created')
-        if date_created:
-            try:
-                accommodation.date_created = datetime.strptime(date_created, "%Y-%m-%d")
-            except ValueError:
-                return handle_error("Invalid date format. Use YYYY-MM-DD", 400)
+        # Step 4: Update accommodation fields with validated data
+        accommodation.accommodation_name = validated_data['accommodation_name']
+        accommodation.accommodation_description = validated_data['accommodation_description']
+        accommodation.verified = validated_data['verified']
 
-        # Handle the document URL if passed
-        if 'url' in data:
-            if accommodation.document:
-                accommodation.document.url = data['url']
-            else:
-                # Create a new document entry if it does not exist
-                new_document = Document(url=data['url'])
-                db.session.add(new_document)
-                db.session.commit()
-                accommodation.document = new_document
+        # Handle date_created if provided
+        if 'date_created' in validated_data:
+            accommodation.date_created = validated_data['date_created']
 
-        # Step 4: Update Many-to-Many relationships
+        # Step 5: Handle the document update or association
+        document_data = validated_data['document']
+        existing_document = db.session.query(Document).filter_by(document_id=document_data['document_id']).first()
+        if existing_document:
+            accommodation.document = existing_document
+        else:
+            return handle_error(f"Document with ID '{document_data['document_id']}' not found", 404)
 
+        # Step 6: Update Many-to-Many relationships
         # Industries
-        if 'industries' in data:
-            accommodation.industries.clear()  # Clear existing relationships
-            for industry_name in data['industries']:
-                industry = db.session.query(Industry).filter_by(industry_name=industry_name).first()
-                if industry:
-                    accommodation.industries.append(industry)
-                else:
-                    return handle_error(f"Industry '{industry_name}' not found", 400)
+        accommodation.industries.clear()  # Clear existing relationships
+        for industry in validated_data['industries']:
+            industry_instance = db.session.query(Industry).filter_by(industry_id=industry.industry_id).first()
+            if industry_instance:
+                accommodation.industries.append(industry_instance)
+            else:
+                return handle_error(f"Industry '{industry.industry_name}' not found", 400)
 
         # Injury Locations
-        if 'injury_locations' in data:
-            accommodation.injury_locations.clear()  # Clear existing relationships
-            for location_name in data['injury_locations']:
-                injury_location = db.session.query(InjuryLocation).filter_by(injury_location_name=location_name).first()
-                if injury_location:
-                    accommodation.injury_locations.append(injury_location)
-                else:
-                    return handle_error(f"Injury Location '{location_name}' not found", 400)
+        accommodation.injury_locations.clear()  # Clear existing relationships
+        for location in validated_data['injury_locations']:
+            injury_location = db.session.query(InjuryLocation).filter_by(injury_location_id=location.injury_location_id).first()
+            if injury_location:
+                accommodation.injury_locations.append(injury_location)
+            else:
+                return handle_error(f"Injury Location with ID '{location.injury_location_id}' not found", 404)
 
         # Injury Natures
-        if 'injury_natures' in data:
-            accommodation.injury_natures.clear()  # Clear existing relationships
-            for nature_name in data['injury_natures']:
-                injury_nature = db.session.query(InjuryNature).filter_by(injury_nature_name=nature_name).first()
-                if injury_nature:
-                    accommodation.injury_natures.append(injury_nature)
-                else:
-                    return handle_error(f"Injury Nature '{nature_name}' not found", 400)
+        accommodation.injury_natures.clear()  # Clear existing relationships
+        for nature in validated_data['injury_natures']:
+            injury_nature = db.session.query(InjuryNature).filter_by(injury_nature_id=nature.injury_nature_id).first()
+            if injury_nature:
+                accommodation.injury_natures.append(injury_nature)
+            else:
+                return handle_error(f"Injury Nature with ID '{nature.injury_nature_id}' not found", 404)
 
-        # Step 5: Save changes to database
+        # Step 7: Save changes to the database
         db.session.commit()
 
-        # Step 6: Prepare the updated response
-        schema = AccommodationSchema()
+        # Step 8: Prepare the updated response
         result = schema.dump(accommodation)
 
-        # Step 7: Return the response
+        # Step 9: Return the response
         return handle_success("Accommodation updated successfully", result)
 
+    except ValidationError as err:
+        # Handle validation errors from Marshmallow
+        return handle_error(f"Validation Error: {err.messages}", 400)
     except Exception as e:
-        # Handle unexpected errors
+        # Rollback the session in case of any error
+        db.session.rollback()
         return handle_error(f"An error occurred: {str(e)}", 500)
+
 
 # Delete Accommodation
 @accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['DELETE'])
