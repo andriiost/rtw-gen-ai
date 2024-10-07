@@ -315,14 +315,13 @@ def process_with_openai(extracted_text):
     return response['choices'][0]['text']  # Assuming JSON format in response
 
 # Helper function to store data in the Azure SQL Database
-def store_in_database(extracted_data, filename, blob_url, extracted_text, file_extension):
+def store_in_database(extracted_data, filename, blob_url, file_extension):
     # Step 1: Insert document metadata
     new_document = Document(
         document_name=filename,
         url=blob_url,
         document_description=extracted_data.get('document_description', ''),
         extension=file_extension,
-        text=extracted_text
     )
     db.session.add(new_document)
     db.session.commit()  # Commit to get document_id
@@ -385,7 +384,7 @@ def upload_document():
             blob_url = upload_to_blob(file_path, filename, file_extension)
 
             # Step 4: Store document and accommodation data in the database
-            store_in_database(extracted_data, filename, blob_url, extracted_text, file_extension)
+            store_in_database(extracted_data, filename, blob_url, file_extension)
 
             # Step 5: Return success response
             return jsonify({
