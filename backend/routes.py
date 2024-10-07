@@ -1,13 +1,30 @@
 from flask import Blueprint, jsonify, request
+from werkzeug.utils import secure_filename
 from .models import Accommodation, Industry, InjuryLocation, InjuryNature, Document
 from .schemas import AccommodationSchema
 from sqlalchemy.orm import selectinload
 from sqlalchemy import asc, desc
 from . import db
 from datetime import datetime
+from azure.storage.blob import BlobServiceClient, ContentSettings
+from openai import AzureOpenAI
+import os
+import fitz
+import docx2txt
 
 # Create a blueprint
 accommodation_routes = Blueprint('accommodation_routes', __name__)
+
+# Azure Blob Storage setup
+blob_service_client = BlobServiceClient(account_url=f"https://{os.getenv('AZURE_STORAGE_ACCOUNT')}.blob.core.windows.net", credential=os.getenv('AZURE_BLOB_KEY'))
+container_name = "rtwblobs"
+
+# Azure OpenAI setup
+client = AzureOpenAI(
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_version=os.getenv("OPENAI_API_VERSION")
+)
 
 # Helper function for standardized error handling
 def handle_error(message, status_code=400):
@@ -251,3 +268,133 @@ def delete_accommodation(accommodation_id):
     except Exception as e:
         # Step 4: Handle unexpected errors
         return handle_error(f"An error occurred during the deletion process: {str(e)}", 500)
+
+
+# Upload Accommodation
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {'pdf', 'docx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Helper function to extract text based on file type
+def extract_text(file_path, extension):
+    if extension == 'pdf':
+        return extract_text_from_pdf(file_path)
+    elif extension == 'docx':
+        return extract_text_from_docx(file_path)
+    else:
+        raise ValueError("Unsupported file type")
+    
+# Extract text from PDF files
+def extract_text_from_pdf(file_path):
+    with fitz.open(file_path) as doc:
+        text = "\n".join([page.get_text() for page in doc])
+    return text
+
+# Extract text from DOCX files
+def extract_text_from_docx(file_path):
+    return docx2txt.process(file_path)
+
+# Helper function to upload to Azure Blob Storage
+def upload_to_blob(file_path, filename, file_extension):
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=filename)
+    with open(file_path, "rb") as data:
+        blob_client.upload_blob(data, content_settings=ContentSettings(content_type=f"application/{file_extension}"))
+    return blob_client.url  # Return the blob URL
+
+# Helper function to process extracted text with Azure OpenAI
+def process_with_openai(extracted_text):
+    prompt = f"""You will receive a text... {extracted_text}"""
+    response = client.completions.create(
+        model=os.getenv("OPENAI_DEPLOYMENT_NAME"),
+        prompt=prompt,
+        max_tokens=1500
+    )
+    return response['choices'][0]['text']  # Assuming JSON format in response
+
+# Helper function to store data in the Azure SQL Database
+def store_in_database(extracted_data, filename, blob_url, extracted_text, file_extension):
+    # Step 1: Insert document metadata
+    new_document = Document(
+        document_name=filename,
+        url=blob_url,
+        document_description=extracted_data.get('document_description', ''),
+        extension=file_extension,
+        text=extracted_text
+    )
+    db.session.add(new_document)
+    db.session.commit()  # Commit to get document_id
+
+    # Step 2: Insert accommodations and related data
+    for accommodation in extracted_data['accommodations']:
+        new_accommodation = Accommodation(
+            accommodation_name=accommodation['accommodation_name'],
+            accommodation_description=accommodation['accommodation_description'],
+            verified=accommodation.get('verified', False),
+            date_created=datetime.strptime(accommodation.get('date_updated', datetime.now().strftime("%Y-%m-%d")), "%Y-%m-%d"),
+            document_id=new_document.document_id
+        )
+
+        # Add industries, injury locations, and injury natures
+        for industry_name in accommodation['industries']:
+            industry = db.session.query(Industry).filter_by(industry_name=industry_name).first()
+            if industry:
+                new_accommodation.industries.append(industry)
+
+        for location_name in accommodation['injury_locations']:
+            location = db.session.query(InjuryLocation).filter_by(injury_location_name=location_name).first()
+            if location:
+                new_accommodation.injury_locations.append(location)
+
+        for nature_name in accommodation['injury_natures']:
+            nature = db.session.query(InjuryNature).filter_by(injury_nature_name=nature_name).first()
+            if nature:
+                new_accommodation.injury_natures.append(nature)
+
+        db.session.add(new_accommodation)
+    
+    db.session.commit()  # Commit all changes to the database
+
+@accommodation_routes.route('/upload', methods=['POST'])
+def upload_document():
+    if 'file' not in request.files:
+        return jsonify({"message": "No file part in the request"}), 400
+
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"message": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        try:
+            # Save the uploaded file
+            filename = secure_filename(file.filename)
+            file_extension = filename.rsplit('.', 1)[1].lower()
+            file_path = os.path.join('/tmp', filename)
+            file.save(file_path)
+
+            # Step 1: Extract text from the document
+            extracted_text = extract_text(file_path, file_extension)
+
+            # Step 2: Process extracted text with Azure OpenAI
+            extracted_data = process_with_openai(extracted_text)
+
+            # Step 3: Upload the document to Azure Blob Storage
+            blob_url = upload_to_blob(file_path, filename, file_extension)
+
+            # Step 4: Store document and accommodation data in the database
+            store_in_database(extracted_data, filename, blob_url, extracted_text, file_extension)
+
+            # Step 5: Return success response
+            return jsonify({
+                "message": "Document uploaded successfully",
+                "accommodations": extracted_data['accommodations']
+            }), 200
+
+        except Exception as e:
+            db.session.rollback()  # Rollback database changes in case of error
+            return jsonify({"message": "An error occurred during the process", "error": str(e)}), 500
+    else:
+        return jsonify({"message": "Unsupported file type"}), 400
