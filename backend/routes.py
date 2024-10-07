@@ -42,7 +42,6 @@ def get_accommodation(id):
         # Handle unexpected errors
         return handle_error(f"An error occurred: {str(e)}", 500)
 
-# Multiple Accommodations Route with Sorting and Filtering using GET query parameters
 @accommodation_routes.route('/accommodations', methods=['GET'])
 def get_accommodations():
     try:
@@ -97,6 +96,9 @@ def get_accommodations():
         if verified is not None:
             query = query.filter(Accommodation.verified == verified)
 
+        # Get total count for pagination
+        total_count = query.count()
+
         # Apply sorting and pagination
         accommodations = query.order_by(sort_criteria)\
             .offset(offset)\
@@ -107,21 +109,35 @@ def get_accommodations():
         schema = AccommodationSchema(many=True)
         result = schema.dump(accommodations)
 
-        # Return the results with pagination, sorting, and filtering metadata
+        # Calculate pagination metadata
+        total_pages = (total_count + limit - 1) // limit  # ceil-like calculation
+        has_next_page = page < total_pages
+        has_prev_page = page > 1
+
+        # Return the results with accommodations, pagination, and filters metadata
         return handle_success("Accommodations retrieved successfully", {
             'accommodations': result,
-            'page': page,
-            'limit': limit,
-            'sort_by': sort_by,
-            'sort_order': sort_order,
-            'industry_ids': industry_ids,
-            'injury_location_ids': injury_location_ids,
-            'verified': verified
+            'pagination': {
+                'page': page,
+                'limit': limit,
+                'total_pages': total_pages,
+                'total_items': total_count,
+                'has_next_page': has_next_page,
+                'has_prev_page': has_prev_page
+            },
+            'filters': {
+                'sort_by': sort_by,
+                'sort_order': sort_order,
+                'industry_ids': industry_ids,
+                'injury_location_ids': injury_location_ids,
+                'verified': verified
+            }
         })
 
     except Exception as e:
         # Handle unexpected errors
         return handle_error(f"An error occurred: {str(e)}", 500)
+
 
 # Update Accommodation
 @accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['PUT'])
