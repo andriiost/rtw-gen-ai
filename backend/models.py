@@ -59,5 +59,4 @@ class Document(db.Model):
     document_description = Column(Text)
     url = Column(String)
     extension = Column(String(10))
-    text = Column(Text)
     accommodations = relationship("Accommodation", back_populates="document")

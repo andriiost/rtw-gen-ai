@@ -1,9 +1,11 @@
 from . import db, ma
-from .models import Accommodation, Industry, InjuryNature, InjuryLocation
+from .models import Accommodation, Industry, InjuryNature, InjuryLocation, Document
 
 class DocumentSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
-        fields=['document_id', 'document_name', 'document_description', 'url']
+        model = Document
+        load_instance = True
+        sqla_session = db.session
 
 class IndustrySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
