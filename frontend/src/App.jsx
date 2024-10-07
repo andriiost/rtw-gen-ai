@@ -16,7 +16,7 @@ function App() {
         <NavBar />
         <div className="pages">
           <Routes>
-            <Route path='/verification' element={<BacklogView />} />
+            <Route path='/verifications' element={<BacklogView />} />
             <Route path='/accommodation/:id' element={<Accommodation />} />
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<Login />} />

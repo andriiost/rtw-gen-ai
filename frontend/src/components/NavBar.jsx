@@ -7,16 +7,16 @@ export default function NavBar() {
     <div className="flex shadow-2xl py-12 justify-evenly">
         <div className='flex'>
             <img className='px-4' src={wsibLogo} alt="WSIB Logo"/>  
-        <h1 className='text-4xl px-4 my-auto'>Internal Services</h1>
+        <h1 className='text-4xl hidden md:block px-4 my-auto'>Internal Services</h1>
         </div>
        
        <div className='flex my-auto'>
        <p className='px-8 py-0 my-auto'> Français</p>
-        <p className='px-8 py-0 my-auto'>Exit</p>
+        <p className='px-8 sm:block hidden py-0 my-auto'>Exit</p>
 
         {
           !user ?
-          <button className='flex rounded-3xl bg-sky-600 text-white ps-4 pe-4 py-2'>
+          <button className='flex rounded-3xl bg-sky-600 text-white px-8 py-2'>
             <div className='px-2'>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="user-lock-solid">
@@ -27,7 +27,7 @@ export default function NavBar() {
             Login
         </button>
           :
-          <p className='underline text-sky-600 font-bold'>Logout</p>
+          <p className='underline px-8 text-sky-600 font-bold'>Logout</p>
         }
         
        </div>

@@ -1,3 +1,6 @@
+
+// THIS PAGE IS A PLACEHOLDER MUST BE CHANGED STILL FROM ALL ACCOMMODATION PAGE
+
 import { React, useState, useEffect } from 'react'
 import accommodationsMock from '../../mockData/accommodationsMocks.json'
 import CardView from '../accommodationsPage/cardView/CardView'

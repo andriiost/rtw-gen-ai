@@ -19,27 +19,27 @@ export default function Accommodation() {
     const fetchAccommodation = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://127.0.0.1:5000/accommodations/${id}`, {
+        setError(null);
+        let res = await fetch(`http://127.0.0.1:5000/accommodations/${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
-        const data = await res.json();
-        console.log(data);
+         res = await res.json();
+        const data = res.data;
         setTitle(data.accommodation_name);
-        //should be an array do one for now
+        setAccommodation(data.accommodation_description);
+        setVerified(data.verified);
+        setDate(data.date_created);
         setArea(data.injury_locations[0].injury_location_name);
         setNature(data.injury_natures[0].injury_nature_name);
         setIndustry(data.industries[0].industry_name);
-
-        setAccommodation(data.accommodation_description);
-        setVerified(data.verified);
         setLink(data.document.url);
-        setDate(data.date_created);
         setError(null);
         setLoading(false);
       } catch (err) {
+        console.log(err);
         setError(err.message);
         setTitle("");
         setArea("");
