@@ -4,7 +4,7 @@ import SortWhite from '../../../assets/sortWhite.png'
 import SortAlphaUp from '../../../assets/sortAlphaUp.png'
 import SortAlphaDown from '../../../assets/sortAlphaDown.png'
 import getHeaderKey from '../../../mockData/utils'
-export const ListView = ({ listData }) => {
+export const ListView = ({ listData, verificationPage = false }) => {
   // headers used for the list view
   const headers = [
     'Accommodation',
@@ -60,7 +60,7 @@ export const ListView = ({ listData }) => {
               {i != 5 ?
                 <div className='flex justify-between p-1' onClick={() => sortColumn(header)}>
                   <h3 className='text-white text-sm font-semibold'>{header}</h3>
-                  <img src={changeIcon(sort[header])} className='mr-4' />
+                  <img src={changeIcon(sort[header])} alt="change icon" className='mr-4' />
                 </div> :
                 <div className='flex justify-between p-1'>
                   <h3 className='text-white text-sm font-semibold'>{header}</h3>
@@ -82,6 +82,7 @@ export const ListView = ({ listData }) => {
             natureOfInjury={item.activity_name}
             source={item.source}
             status={item.verified}
+            verificationPage={verificationPage}
           />
         })}
       </div>

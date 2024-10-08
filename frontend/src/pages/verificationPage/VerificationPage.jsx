@@ -22,13 +22,35 @@ export default function VerificationPage() {
   const currentDate = new Date().toISOString().slice(0, 10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const handlePreview = () => {
     setOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit =  async (e) => {
     e.preventDefault();
-    console.log("hi");
+    const data = {
+      accommodation_name: title,
+      accommodation_descriptions: accommodation,
+      verified : true,
+      data_created : currentDate,
+      //the following are not in the table...
+      injury_location: area,
+      injury_nature: nature,
+      industry: industry,
+    }
+    try { 
+      setLoading(true)
+      setError(null)
+      //req
+
+      setLoading(true)
+    } catch (err) {
+      setError('An error occurred and the accommodation may not be verified/changed!')
+      setLoading(false)
+    }
+    //switch page? or have a success page
+    navigate('/verifications')
   };
 
   const  handleDelete = async () => {
@@ -105,7 +127,7 @@ export default function VerificationPage() {
         <div>
           {error ? (
             <Error
-              title="Could Not Access Page"
+              title="Something Went Wrong"
               message={error}
               buttonLink="/verifications"
               buttonText="Back to Verfifications"
@@ -114,7 +136,7 @@ export default function VerificationPage() {
             <div className="w-4/5 mx-auto">
               <div className="flex flex-row justify-between my-10">
                 <div className="flex flex-row">
-                  <div className="my-auto">
+                  <Link to='/verifications' className="my-auto">
                     <svg
                       width="24"
                       height="24"
@@ -130,7 +152,7 @@ export default function VerificationPage() {
                         />
                       </g>
                     </svg>
-                  </div>
+                  </Link>
 
                   <div className="mx-10 text-4xl">{title}</div>
                 </div>
@@ -280,14 +302,14 @@ export default function VerificationPage() {
                           { value: "Multiple", label: "Multiple" },
                           { value: "Other", label: "Other" },
                         ]}
+                        defaultInputValue={area}
                         className="mb-3 mt-2 border rounded-md border-neutral-400 focus:ring-0  focus:outline-none focus:border-neutral-400"
-                        onChange={(e) => setArea(e)}
+                        onChange={(e) => setArea(e.value)}
                       />
                     </label>
 
                     <label className="flex flex-col my-2">
                       <div className="flex flex-row text-base text-black">
-                        {" "}
                         Nature of Injury
                       </div>
                       <Select
@@ -325,9 +347,10 @@ export default function VerificationPage() {
                           { value: "Other", label: "Other" },
                           { value: "Multiple", label: "Multiple" },
                         ]}
+                        defaultInputValue={nature}
                         className="mb-3 mt-2 border rounded-md border-neutral-400 focus:ring-0  focus:outline-none focus:border-neutral-400 "
                         onChange={(e) => {
-                          setNature(e.target.value);
+                          setNature(e.value);
                         }}
                       />
                     </label>
@@ -414,9 +437,10 @@ export default function VerificationPage() {
                           },
                           { value: "Multiple", label: "Multiple" },
                         ]}
+                        defaultInputValue={industry}
                         className="mb-3 mt-2 border rounded-md border-neutral-400 focus:ring-0  focus:outline-none focus:border-neutral-400"
                         onChange={(e) => {
-                          setIndustry(e.target.value);
+                          setIndustry(e.value);
                         }}
                       />
                     </label>
@@ -541,7 +565,9 @@ export default function VerificationPage() {
                       <div className="bg-white px-4 py-3">
                         {/* code here */}
                         <div className="">
-                          <button className="flex flex-row px-3 py-1 ms-10 rounded-3xl my-8 border-cyan-950 border">
+                          <button
+                          onClick = {() => setOpen(false)}
+                          className="flex flex-row px-3 py-1 ms-10 rounded-3xl my-8 border-cyan-950 border">
                             <div className="my-auto">
                               <svg
                                 width="16"
