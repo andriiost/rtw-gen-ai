@@ -1,12 +1,6 @@
 from . import db, ma
 from .models import Accommodation, Industry, InjuryNature, InjuryLocation, Document
 
-class DocumentSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Document
-        load_instance = True
-        sqla_session = db.session
-
 class IndustrySchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Industry
@@ -26,7 +20,8 @@ class InjuryLocationSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
 class AccommodationSchema(ma.SQLAlchemyAutoSchema):
-    document = ma.Nested(DocumentSchema)
+    # Late binding as DocumentSchema is defined later
+    document = ma.Nested("DocumentSchema", exclude=('accommodations',)) # Exclusion to eliminate circular reference
     industries = ma.List(ma.Nested(IndustrySchema))
     injury_natures = ma.List(ma.Nested(InjuryNatureSchema))
     injury_locations = ma.List(ma.Nested(InjuryLocationSchema))
@@ -34,5 +29,13 @@ class AccommodationSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         # Automatically maps fields
         model = Accommodation
+        load_instance = True
+        sqla_session = db.session
+
+class DocumentSchema(ma.SQLAlchemyAutoSchema):
+    accommodations = ma.List(ma.Nested(AccommodationSchema, exclude=('document',))) # Exclusion to emininate circular reference
+
+    class Meta:
+        model = Document
         load_instance = True
         sqla_session = db.session
