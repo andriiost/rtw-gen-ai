@@ -7,6 +7,7 @@ import { Route, Routes, BrowserRouter } from 'react-router-dom'
 import Home from './pages/homePage/Home';
 import Accommodation from './pages/individualAcc/Accommodation';
 import BacklogView from './pages/verificationBacklog/BacklogView';
+import Upload from './pages/fileUpload/Upload';
 import { Accommodations } from './pages/accommodationsPage/Accommodations';
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<Login />} />
             <Route path='/accommodations' element={<Accommodations/>}/>
+            <Route path='/newDocument' element={<Upload/>}/>
             <Route path='/verification/:id' element={<VerificationPage />} />
       </Routes>
         </div>
