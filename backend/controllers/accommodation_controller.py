@@ -166,34 +166,37 @@ def update_accommodation(accommodation_id):
     including the name, description, verification status, associated document, industries,
     injury locations, and injury natures. It handles many-to-many relationships and date validation.
 
+    Request Body Example:
+    ```
+    {
+      "accommodation_name": "Cooling Vest",
+      "accommodation_description": "A cooling vest with ice packs for heat stress relief.",
+      "verified": true,
+      "date_created": "2024-10-10",
+      "document_id": 123,             # ID of the document to link
+      "industries": [1, 5],           # List of industry IDs
+      "injury_locations": [3, 7],     # List of injury location IDs
+      "injury_natures": [10]          # List of injury nature IDs
+    }
+    ```
     :param accommodation_id: The ID of the accommodation to update.
     :return: JSON response with the updated accommodation details or an error message.
     """
     try:
-        # Step 1: fetch the existing accommodation by ID
-        accommodation = db.session.query(Accommodation)\
-            .options(
-                selectinload(Accommodation.document),
-                selectinload(Accommodation.industries),
-                selectinload(Accommodation.injury_locations),
-                selectinload(Accommodation.injury_natures)
-            ).filter_by(accommodation_id=accommodation_id).first()
+        accommodation = db.session.query(Accommodation).filter_by(accommodation_id=accommodation_id).first()
 
         if not accommodation:
             return handle_error("Accommodation not found", 404)
 
-        # Step 2: Get the request body data
         data = request.get_json()
 
         if not data:
             return handle_error("Invalid request body", 400)
 
-        # Step 3: Update the accommodation fields
         accommodation.accommodation_name = data.get('accommodation_name', accommodation.accommodation_name)
         accommodation.accommodation_description = data.get('accommodation_description', accommodation.accommodation_description)
         accommodation.verified = data.get('verified', accommodation.verified)
 
-        # Handle date_created if passed
         date_created = data.get('date_created')
         if date_created:
             try:
@@ -201,66 +204,55 @@ def update_accommodation(accommodation_id):
             except ValueError:
                 return handle_error("Invalid date format. Use YYYY-MM-DD", 400)
 
-        # Handle the document URL if passed
-        if 'url' in data:
-            if accommodation.document:
-                accommodation.document.url = data['url']
+        # Handle Document
+        if 'document_id' in data:
+            document = db.session.query(Document).filter_by(document_id=data['document_id']).first()
+            if document:
+                accommodation.document = document
             else:
-                # Create a new document entry if it does not exist
-                new_document = Document(url=data['url'])
-                db.session.add(new_document)
-                db.session.commit()
-                accommodation.document = new_document
+                return handle_error("Document not found", 404)
 
-        # Step 4: Update Many-to-Many relationships
-
-        # Industries
+        # Update Many-to-Many Relationships with Existing Entities
         if 'industries' in data:
             accommodation.industries.clear()  # Clear existing relationships
-            for industry_name in data['industries']:
-                industry = db.session.query(Industry).filter_by(industry_name=industry_name).first()
+            for industry_id in data['industries']:
+                industry = db.session.query(Industry).filter_by(industry_id=industry_id).first()
                 if industry:
                     accommodation.industries.append(industry)
                 else:
-                    return handle_error(f"Industry '{industry_name}' not found", 400)
+                    return handle_error(f"Industry ID '{industry_id}' not found", 400)
 
-        # Injury Locations
         if 'injury_locations' in data:
             accommodation.injury_locations.clear()  # Clear existing relationships
-            for location_name in data['injury_locations']:
-                injury_location = db.session.query(InjuryLocation).filter_by(injury_location_name=location_name).first()
+            for location_id in data['injury_locations']:
+                injury_location = db.session.query(InjuryLocation).filter_by(injury_location_id=location_id).first()
                 if injury_location:
                     accommodation.injury_locations.append(injury_location)
                 else:
-                    return handle_error(f"Injury Location '{location_name}' not found", 400)
+                    return handle_error(f"Injury Location ID '{location_id}' not found", 400)
 
-        # Injury Natures
         if 'injury_natures' in data:
             accommodation.injury_natures.clear()  # Clear existing relationships
-            for nature_name in data['injury_natures']:
-                injury_nature = db.session.query(InjuryNature).filter_by(injury_nature_name=nature_name).first()
+            for nature_id in data['injury_natures']:
+                injury_nature = db.session.query(InjuryNature).filter_by(injury_nature_id=nature_id).first()
                 if injury_nature:
                     accommodation.injury_natures.append(injury_nature)
                 else:
-                    return handle_error(f"Injury Nature '{nature_name}' not found", 400)
+                    return handle_error(f"Injury Nature ID '{nature_id}' not found", 400)
 
-        # Step 5: Save changes to database
         db.session.commit()
 
-        # Step 6: Prepare the updated response
         schema = AccommodationSchema()
         result = schema.dump(accommodation)
 
-        # Step 7: Return the response
         return handle_success("Accommodation updated successfully", result)
 
     except ValueError as e:
         return handle_error(f"Invalid input: {str(e)}", 400)
-    except KeyError as e:
-        return handle_error(f"Missing required field: {str(e)}", 400)
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         return handle_error("An internal server error occurred", 500)
+
 
 def delete_accommodation(accommodation_id):
     """
