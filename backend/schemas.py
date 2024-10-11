@@ -33,7 +33,7 @@ class AccommodationSchema(ma.SQLAlchemyAutoSchema):
         sqla_session = db.session
 
 class DocumentSchema(ma.SQLAlchemyAutoSchema):
-    accommodations = ma.List(ma.Nested(AccommodationSchema, exclude=('document',))) # Exclusion to emininate circular reference
+    accommodations = ma.List(ma.Nested(AccommodationSchema, exclude=('document',))) # Exclusion to eliminate circular reference
 
     class Meta:
         model = Document
