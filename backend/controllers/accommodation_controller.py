@@ -171,8 +171,8 @@ def update_accommodation(accommodation_id):
     {
       "accommodation_name": "Cooling Vest",
       "accommodation_description": "A cooling vest with ice packs for heat stress relief.",
-      "verified": true,
-      "date_created": "2024-10-10",
+      "verified": true,               # Default to FALSE if not provided
+      "date_created": "2024-10-10",   # Default to CURRENT DATE if not provided
       "document_id": 123,             # ID of the document to link
       "industries": [1, 5],           # List of industry IDs
       "injury_locations": [3, 7],     # List of injury location IDs
@@ -204,7 +204,7 @@ def update_accommodation(accommodation_id):
             except ValueError:
                 return handle_error("Invalid date format. Use YYYY-MM-DD", 400)
 
-        # Handle Document
+        # Add document
         if 'document_id' in data:
             document = db.session.query(Document).filter_by(document_id=data['document_id']).first()
             if document:
@@ -212,7 +212,7 @@ def update_accommodation(accommodation_id):
             else:
                 return handle_error("Document not found", 404)
 
-        # Update Many-to-Many Relationships with Existing Entities
+        # Add related industries
         if 'industries' in data:
             accommodation.industries.clear()  # Clear existing relationships
             for industry_id in data['industries']:
@@ -222,6 +222,7 @@ def update_accommodation(accommodation_id):
                 else:
                     return handle_error(f"Industry ID '{industry_id}' not found", 400)
 
+        # Add related injury locations
         if 'injury_locations' in data:
             accommodation.injury_locations.clear()  # Clear existing relationships
             for location_id in data['injury_locations']:
@@ -230,7 +231,8 @@ def update_accommodation(accommodation_id):
                     accommodation.injury_locations.append(injury_location)
                 else:
                     return handle_error(f"Injury Location ID '{location_id}' not found", 400)
-
+        
+        # Add related injury natures
         if 'injury_natures' in data:
             accommodation.injury_natures.clear()  # Clear existing relationships
             for nature_id in data['injury_natures']:
@@ -291,6 +293,19 @@ def create_accommodation():
     This function creates a new accommodation with the provided data 
     including its name, description, industries, injury locations, and natures.
 
+    Request Body Example:
+    ```
+    {
+      "accommodation_name": "Cooling Vest",
+      "accommodation_description": "A cooling vest with ice packs for heat stress relief.",
+      "verified": true,               # Default to FALSE if not provided
+      "date_created": "2024-10-10",   # Default to CURRENT DATE if not provided
+      "document_id": 123,             # ID of the document to link
+      "industries": [1, 5],           # List of industry IDs
+      "injury_locations": [3, 7],     # List of injury location IDs
+      "injury_natures": [10]          # List of injury nature IDs
+    }
+    ````
     :return: JSON response indicating success or error message.
     """
     try:
@@ -307,6 +322,14 @@ def create_accommodation():
             date_created=datetime.strptime(data.get('date_created', datetime.now().strftime("%Y-%m-%d")), "%Y-%m-%d")
         )
 
+        # Add document
+        if 'document_id' in data:
+            document = db.session.query(Document).filter_by(document_id=data['document_id']).first()
+            if document:
+                new_accommodation.document = document
+            else:
+                return handle_error("Document not found", 404)
+            
         # Add related industries
         if 'industries' in data:
             for industry_id in data['industries']:
@@ -333,6 +356,7 @@ def create_accommodation():
                     new_accommodation.injury_natures.append(nature)
                 else:
                     return handle_error(f"Injury Nature ID '{nature_id}' not found", 400)
+                
 
         # Save to the database
         db.session.add(new_accommodation)

@@ -14,4 +14,4 @@ accommodation_routes.route('/accommodations/<int:id>', methods=['GET'])(get_acco
 accommodation_routes.route('/accommodations', methods=['GET'])(get_accommodations)
 accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['PUT'])(update_accommodation)
 accommodation_routes.route('/accommodations/<int:accommodation_id>', methods=['DELETE'])(delete_accommodation)
-accommodation_routes.route('/accommodation', methods=['POST'])(create_accommodation)
+accommodation_routes.route('/accommodations', methods=['POST'])(create_accommodation)
