@@ -282,3 +282,69 @@ def delete_accommodation(accommodation_id):
     except Exception as e:
         print(f"Unexpected error: {str(e)}")  # In production, use a logger
         return handle_error("An internal server error occurred", 500)
+    
+
+def create_accommodation():
+    """
+    Create a new accommodation manually.
+
+    This function creates a new accommodation with the provided data 
+    including its name, description, industries, injury locations, and natures.
+
+    :return: JSON response indicating success or error message.
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return handle_error("Invalid request body", 400)
+
+        # Create a new Accommodation object
+        new_accommodation = Accommodation(
+            accommodation_name=data.get('accommodation_name'),
+            accommodation_description=data.get('accommodation_description'),
+            verified=data.get('verified', False),
+            date_created=datetime.strptime(data.get('date_created', datetime.now().strftime("%Y-%m-%d")), "%Y-%m-%d")
+        )
+
+        # Add related industries
+        if 'industries' in data:
+            for industry_id in data['industries']:
+                industry = db.session.query(Industry).filter_by(industry_id=industry_id).first()
+                if industry:
+                    new_accommodation.industries.append(industry)
+                else:
+                    return handle_error(f"Industry ID '{industry_id}' not found", 400)
+
+        # Add related injury locations
+        if 'injury_locations' in data:
+            for location_id in data['injury_locations']:
+                location = db.session.query(InjuryLocation).filter_by(injury_location_id=location_id).first()
+                if location:
+                    new_accommodation.injury_locations.append(location)
+                else:
+                    return handle_error(f"Injury Location ID '{location_id}' not found", 400)
+
+        # Add related injury natures
+        if 'injury_natures' in data:
+            for nature_id in data['injury_natures']:
+                nature = db.session.query(InjuryNature).filter_by(injury_nature_id=nature_id).first()
+                if nature:
+                    new_accommodation.injury_natures.append(nature)
+                else:
+                    return handle_error(f"Injury Nature ID '{nature_id}' not found", 400)
+
+        # Save to the database
+        db.session.add(new_accommodation)
+        db.session.commit()
+
+        # Serialize and return the response
+        schema = AccommodationSchema()
+        result = schema.dump(new_accommodation)
+        return handle_success("Accommodation created successfully", result)
+
+    except ValueError as e:
+        return handle_error(f"Invalid input: {str(e)}", 400)
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return handle_error("An internal server error occurred", 500)
