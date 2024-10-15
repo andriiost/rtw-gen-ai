@@ -147,9 +147,8 @@ def get_documents():
         offset = (page - 1) * limit
         
         # Sorting
-        sort_by = request.args.get('sort_by', 'document_id')  # Default sort by document_id
         sort_order = request.args.get('sort_order', 'asc')    # Default to ascending
-        sort_column = getattr(Document, sort_by, Document.document_id)
+        sort_column = getattr(Document, 'document_id', Document.document_id)
         sort_criteria = asc(sort_column) if sort_order == 'asc' else desc(sort_column)
         
         # Base query to fetch documents
@@ -182,7 +181,7 @@ def get_documents():
                 'has_prev_page': has_prev_page
             },
             'filters': {
-                'sort_by': sort_by,
+                'sort_by': 'document_id',
                 'sort_order': sort_order
             }
         })
