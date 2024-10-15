@@ -1,5 +1,6 @@
 from flask import request
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, noload
+from sqlalchemy import asc, desc
 from ..extensions import db
 from ..models import Document, Accommodation
 from ..schemas import DocumentSchema
@@ -136,4 +137,53 @@ def delete_document(document_id):
     except Exception as e:
         # Log error and return generic error response
         print(f"Error deleting document: {str(e)}")
+        return handle_error("An internal server error occurred while deleting the document", 500)
+    
+def get_documents():
+    try:
+        # Pagination parameters
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', 20, type=int)
+        offset = (page - 1) * limit
+        
+        # Sorting
+        sort_order = request.args.get('sort_order', 'asc')    # Default to ascending
+        sort_column = getattr(Document, 'document_id', Document.document_id)
+        sort_criteria = asc(sort_column) if sort_order == 'asc' else desc(sort_column)
+        
+        # Base query to fetch documents
+        query = db.session.query(Document).options(noload(Document.accommodations)).order_by(sort_criteria)
+
+        # Get total coount for pagination
+        total_count = query.count()
+
+        # Apply pagination
+        documents = query.offset(offset).limit(limit).all()
+
+        # Serialize the results
+        schema = DocumentSchema(many=True, exclude=('accommodations', ))
+        result = schema.dump(documents)
+
+        # Calculate pagination metadata
+        total_pages = (total_count + limit - 1) // limit  # ceil-like calculation
+        has_next_page = page < total_pages
+        has_prev_page = page > 1
+
+        # Return the response with documents and pagination metadata
+        return handle_success("Documents retrieved successfully", {
+            'documents': result,
+            'pagination': {
+                'page': page,
+                'limit': limit,
+                'total_pages': total_pages,
+                'total_items': total_count,
+                'has_next_page': has_next_page,
+                'has_prev_page': has_prev_page
+            },
+            'filters': {
+                'sort_by': 'document_id',
+                'sort_order': sort_order
+            }
+        })
+    except Exception as e:
         return handle_error("An internal server error occurred while deleting the document", 500)
