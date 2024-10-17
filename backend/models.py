@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Date, Table, Text
 from sqlalchemy.orm import relationship
-from . import db
+from .app import db
 
 # Junction tables for many-to-many relationships
 accommodation_industry = Table(

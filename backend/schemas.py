@@ -1,4 +1,4 @@
-from . import db, ma
+from .app import db, ma
 from .models import Accommodation, Industry, InjuryNature, InjuryLocation, Document
 
 class IndustrySchema(ma.SQLAlchemyAutoSchema):
